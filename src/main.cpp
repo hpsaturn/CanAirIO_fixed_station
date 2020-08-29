@@ -2,7 +2,6 @@
 
 void setup() {
     WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
-
     // put your setup code here, to run once:
     Serial.begin(115200);
     
@@ -22,16 +21,21 @@ void setup() {
     bool res;
     // res = wm.autoConnect(); // auto generated AP name from chipid
     // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
-    res = wm.autoConnect("AutoConnectAP","password"); // password protected ap
+    res = wm.autoConnect("CanAirIO_ConfigMe!"); // password protected ap
 
     if(!res) {
-        Serial.println("Failed to connect");
+        Serial.println(">WM: Failed to connect");
         // ESP.restart();
     } 
     else {
         //if you get here you have connected to the WiFi    
-        Serial.println("connected...yeey :)");
+        Serial.println(">WM: connected!");
     }
+
+    Serial.println(">WM: to "+wm.getWiFiSSID());
+    Serial.print(">WM: IP: "); Serial.println(WiFi.localIP());
+    Serial.print(">WM: MAC: "); Serial.println(WiFi.macAddress());
+    Serial.print(">WM: RSSI: "); Serial.println(WiFi.RSSI());
 
 }
 
