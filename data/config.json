@@ -1,0 +1,6 @@
+{
+  "influxdb":"canairio",
+  "hostname":"influxdb.canair.io",
+  "port":"8086",
+  "devicename":""
+}
