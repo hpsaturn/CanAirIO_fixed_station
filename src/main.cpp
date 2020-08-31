@@ -6,11 +6,10 @@
   #include <SPIFFS.h>
 #endif
 
-//define your default values here, if there are different values in config.json, they are overwritten.
-char influx_server[40];
-char influx_port[6];
-char influx_db[32];
-char devicename[32];
+char influx_server[40];   // influxdb server IP
+char influx_port[6];      // influxdb server port
+char influx_db[32];       // influxdb database name
+char devicename[32];      // CanAirIO station name
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -23,19 +22,19 @@ void saveConfigCallback () {
 
 void setupSpiffs(){
   //clean FS, for testing
-//   SPIFFS.format();
+  //SPIFFS.format();
 
   //read configuration from FS json
   Serial.println(">WM: mounting FS..");
 
   if (SPIFFS.begin()) {
-      Serial.println(">WM: mounted file system");
+      Serial.println(">WM: mounted file system.");
       if (SPIFFS.exists("/config.json")) {
           //file exists, reading and loading
-          Serial.println(">WM: reading config file");
+          Serial.println(">WM: reading config file..");
           File configFile = SPIFFS.open("/config.json", "r");
           if (configFile) {
-              Serial.println(">WM: opened config file:");
+              Serial.println(">WM: opened config file.");
               // Allocate a temporary JsonDocument
               // Don't forget to change the capacity to match your requirements.
               // Use arduinojson.org/v6/assistant to compute the capacity.
@@ -45,7 +44,7 @@ void setupSpiffs(){
               if (error)
                   Serial.println(F("-WM: Failed to read config file, using default configuration"));
 
-              Serial.println(">WM: parsed json");
+              Serial.println(">WM: parsed json.");
 
               strlcpy(influx_server, json["hostname"] | influx_server, sizeof(influx_server));
               strlcpy(influx_port, json["port"] | influx_port, sizeof(influx_port));
@@ -80,10 +79,7 @@ void setup() {
   wm.setSaveConfigCallback(saveConfigCallback);
 
   // setup custom parameters
-  // 
-  // The extra parameters to be configured (can be either global or just in the setup)
-  // After connecting, parameter.getValue() will get you the configured value
-  // id/name placeholder/prompt default length
+  // id/name  placeholder/prompt  default  length
   WiFiManagerParameter custom_influx_server("server", "influx server", influx_server, 40);
   WiFiManagerParameter custom_influx_port("port", "influx port", influx_port, 6);
   WiFiManagerParameter custom_influx_db("influxdb", "database", influx_db, 32);
@@ -96,7 +92,7 @@ void setup() {
   wm.addParameter(&custom_influx_port);
 
   //reset settings - wipe credentials for testing
-//   wm.resetSettings();
+  //wm.resetSettings();
 
   //automatically connect using saved credentials if they exist
   //If connection fails it starts an access point with the specified name
@@ -111,11 +107,13 @@ void setup() {
   }
 
   // always start configportal for a little while
-  // wm.setConfigPortalTimeout(60);
-  // wm.startConfigPortal("AutoConnectAP","password");
+  wm.setConfigPortalTimeout(60);
+  wm.startConfigPortal("CanAirIO Config","CanAirIO");
 
   //if you get here you have connected to the WiFi
   Serial.println(">WM: connected! :)");
+
+  WiFi.setHostname("CanAirIO");
 
   //read updated parameters
   strcpy(influx_server, custom_influx_server.getValue());
