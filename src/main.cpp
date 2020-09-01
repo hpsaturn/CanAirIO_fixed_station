@@ -14,10 +14,10 @@ char influx_port[6];     // influxdb server port
 char influx_db[32];      // influxdb database name
 char devicename[32];     // CanAirIO station name
 
-WiFiManagerParameter custom_influx_server;
-WiFiManagerParameter custom_influx_port;
-WiFiManagerParameter custom_influx_db;
-WiFiManagerParameter custom_devicename;
+WiFiManagerParameter custom_influx_server("server", "influx server", influx_server, 40);
+WiFiManagerParameter custom_influx_port("port", "influx port", influx_port, 6);
+WiFiManagerParameter custom_influx_db("influxdb", "database", influx_db, 32);
+WiFiManagerParameter custom_devicename("devicename", "device name", devicename, 32);
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -60,10 +60,10 @@ void setupSpiffs() {
                 strlcpy(influx_db, json["influxdb"] | influx_db, sizeof(influx_db));
                 strlcpy(devicename, json["devicename"] | "", sizeof(devicename));
 
-                custom_influx_server.setValue(influx_server, sizeof(influx_server));
-                custom_influx_port.setValue(influx_port, sizeof(influx_port));
-                custom_influx_db.setValue(influx_db, sizeof(influx_db));
-                custom_devicename.setValue(devicename, sizeof(devicename));
+                custom_influx_server.setValue(influx_server, 40);
+                custom_influx_port.setValue(influx_port, 6);
+                custom_influx_db.setValue(influx_db, 32);
+                custom_devicename.setValue(devicename, 32);
 
                 configFile.close();
 
