@@ -7,10 +7,17 @@
 #include <SPIFFS.h>
 #endif
 
+WiFiManager wm;
+
 char influx_server[40];  // influxdb server IP
 char influx_port[6];     // influxdb server port
 char influx_db[32];      // influxdb database name
 char devicename[32];     // CanAirIO station name
+
+WiFiManagerParameter custom_influx_server;
+WiFiManagerParameter custom_influx_port;
+WiFiManagerParameter custom_influx_db;
+WiFiManagerParameter custom_devicename;
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -53,6 +60,11 @@ void setupSpiffs() {
                 strlcpy(influx_db, json["influxdb"] | influx_db, sizeof(influx_db));
                 strlcpy(devicename, json["devicename"] | "", sizeof(devicename));
 
+                custom_influx_server.setValue(influx_server, sizeof(influx_server));
+                custom_influx_port.setValue(influx_port, sizeof(influx_port));
+                custom_influx_db.setValue(influx_db, sizeof(influx_db));
+                custom_devicename.setValue(devicename, sizeof(devicename));
+
                 configFile.close();
 
             } else {
@@ -64,6 +76,14 @@ void setupSpiffs() {
     } else {
         Serial.println("-WM: failed to mount FS!");
     }
+}
+
+void readCurrentValues(){
+    //read updated parameters
+    strcpy(influx_server, custom_influx_server.getValue());
+    strcpy(influx_port, custom_influx_port.getValue());
+    strcpy(influx_db, custom_influx_db.getValue());
+    strcpy(devicename, custom_devicename.getValue());
 }
 
 void writeConfigFile() {
@@ -89,60 +109,8 @@ void writeConfigFile() {
 //callback notifying us of the need to save config
 void saveConfigCallback() {
     Serial.println(">WM: Should save config");
-    shouldSaveConfig = true;
-}
-
-void setupWifiManager() {
-    // WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
-    WiFiManager wm;
-    //set config save notify callback
-    wm.setSaveConfigCallback(saveConfigCallback);
-    // setup custom parameters
-    // id/name  placeholder/prompt  default  length
-    WiFiManagerParameter custom_influx_server("server", "influx server", influx_server, 40);
-    WiFiManagerParameter custom_influx_port("port", "influx port", influx_port, 6);
-    WiFiManagerParameter custom_influx_db("influxdb", "database", influx_db, 32);
-    WiFiManagerParameter custom_devicename("devicename", "device name", devicename, 32);
-    //add all your parameters here
-    wm.addParameter(&custom_devicename);
-    wm.addParameter(&custom_influx_server);
-    wm.addParameter(&custom_influx_db);
-    wm.addParameter(&custom_influx_port);
-    //reset settings - wipe credentials for testing
-    //wm.resetSettings();
-    
-    //automatically connect using saved credentials if they exist
-    //If connection fails it starts an access point with the specified name
-    //here  "AutoConnectAP" if empty will auto generate basedcon chipid, if password is blank it will be anonymous
-    //and goes into a blocking loop awaiting configuration
-    if (!wm.autoConnect("CanAirIO_ConfigMe!")) {
-        Serial.println("-WM: failed to connect and hit timeout");
-        delay(3000);
-        // if we still have not connected restart and try all over again
-        Serial.println("-WM: ESP restart..");
-        ESP.restart();
-        delay(5000);
-    }
-
-    // always start configportal for a little while
-    // wm.setConfigPortalTimeout(60);
-    // wm.startConfigPortal("CanAirIO Config", "CanAirIO");
-
-    //if you get here you have connected to the WiFi
-    Serial.println(">WM: connected! :)");
-
-    WiFi.setHostname("CanAirIO");
-
-    //read updated parameters
-    strcpy(influx_server, custom_influx_server.getValue());
-    strcpy(influx_port, custom_influx_port.getValue());
-    strcpy(influx_db, custom_influx_db.getValue());
-    strcpy(devicename, custom_devicename.getValue());
-
-    //save the custom parameters to FS
-    if (shouldSaveConfig) {
-       writeConfigFile();
-    }
+    readCurrentValues();
+    writeConfigFile();
 }
 
 void runPingTest() {
@@ -178,6 +146,39 @@ void printConfigValues() {
     Serial.println(influx_db);
 }
 
+void setupWifiManager() {
+    // setup custom parameters
+    // id/name  placeholder/prompt  default  length
+
+    //adding custom parameters for CanAirIO device configuration
+    wm.addParameter(&custom_devicename);
+    wm.addParameter(&custom_influx_server);
+    wm.addParameter(&custom_influx_db);
+    wm.addParameter(&custom_influx_port);
+    //reset settings - wipe credentials for testing
+    // wm.resetSettings();
+    wm.setConfigPortalBlocking(false);
+    //set config save notify callback
+    wm.setSaveConfigCallback(saveConfigCallback);
+    
+    //automatically connect using saved credentials if they exist
+    //If connection fails it starts an access point with the specified name
+    if(wm.autoConnect("CanAirIO_ConfigMe!")){
+        Serial.println(">WM: connected! :)");
+        WiFi.setHostname("CanAirIO");
+        readCurrentValues();
+        printConfigValues();
+    }
+    else {
+        Serial.println(">WM: Configportal running");
+    }
+    
+    // always start configportal for a little while
+    // wm.setConfigPortalTimeout(60);
+    // wm.startConfigPortal("CanAirIO Config", "CanAirIO");
+
+}
+
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(115200);
@@ -190,11 +191,12 @@ void setup() {
     setupSpiffs();
     setupWifiManager();
     Serial.println(">VD: setup ready!");
-    printConfigValues();
-    runPingTest();
+    
 }
 
+bool isPortalRunning;
+
 void loop() {
-  delay(15000);
-  runPingTest();
+    wm.process();
+    if(WiFi.isConnected())runPingTest();
 }
