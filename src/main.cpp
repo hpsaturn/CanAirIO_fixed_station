@@ -21,9 +21,9 @@ WiFiManagerParameter custom_devicename("devicename", "device name", devicename, 
 
 //flag for saving data
 bool shouldSaveConfig = false;
+bool isPortalRunning = true;
 
 #define GPIO_LED_GREEN 22  // Led on TTGO board (black)
-
 
 void blinkOnboardLed() {
     digitalWrite(GPIO_LED_GREEN, LOW);
@@ -106,25 +106,6 @@ void writeConfigFile() {
     shouldSaveConfig = false;
 }
 
-//callback notifying us of the need to save config
-void saveConfigCallback() {
-    Serial.println(">WM: Should save config");
-    readCurrentValues();
-    writeConfigFile();
-}
-
-void runPingTest() {
-    Serial.print(">VD: Pinging:\t");
-    Serial.print(influx_server);
-
-    if (Ping.ping(influx_server)) {
-        blinkOnboardLed();
-        Serial.println(" -> Success!!");
-    } else {
-        Serial.println(" -> Error :(");
-    }
-}
-
 void printConfigValues() {
     Serial.print(">WM: IP:\t");
     Serial.println(WiFi.localIP());
@@ -146,6 +127,41 @@ void printConfigValues() {
     Serial.println(influx_db);
 }
 
+//callback notifying us of the need to save config
+void saveConfigCallback() {
+    Serial.println(">WM: saving new config..");
+    readCurrentValues();
+    printConfigValues();
+    writeConfigFile();
+}
+
+void runPingTest() {
+    Serial.print(">VD: Pinging:\t");
+    Serial.print(influx_server);
+
+    if (Ping.ping(influx_server)) {
+        blinkOnboardLed();
+        Serial.println(" -> Success!!");
+    } else {
+        Serial.println(" -> Error :(");
+    }
+}
+
+void startWifiManager() {
+    //automatically connect using saved credentials if they exist
+    //If connection fails it starts an access point with the specified name
+    if(wm.autoConnect("CanAirIO_ConfigMe!")){
+        Serial.println(">WM: connected! :)");
+        WiFi.setHostname("CanAirIO");
+        readCurrentValues();
+        printConfigValues();
+    }
+    else {
+        Serial.println(">WM: Config portal is running");
+        isPortalRunning=true;
+    }
+}
+
 void setupWifiManager() {
     // setup custom parameters
     // id/name  placeholder/prompt  default  length
@@ -160,19 +176,6 @@ void setupWifiManager() {
     wm.setConfigPortalBlocking(false);
     //set config save notify callback
     wm.setSaveConfigCallback(saveConfigCallback);
-    
-    //automatically connect using saved credentials if they exist
-    //If connection fails it starts an access point with the specified name
-    if(wm.autoConnect("CanAirIO_ConfigMe!")){
-        Serial.println(">WM: connected! :)");
-        WiFi.setHostname("CanAirIO");
-        readCurrentValues();
-        printConfigValues();
-    }
-    else {
-        Serial.println(">WM: Configportal running");
-    }
-    
     // always start configportal for a little while
     // wm.setConfigPortalTimeout(60);
     // wm.startConfigPortal("CanAirIO Config", "CanAirIO");
@@ -190,13 +193,34 @@ void setup() {
 
     setupSpiffs();
     setupWifiManager();
+    startWifiManager();
     Serial.println(">VD: setup ready!");
     
 }
 
-bool isPortalRunning;
 
 void loop() {
+    static uint_fast64_t timeStamp = 0;
     wm.process();
-    if(WiFi.isConnected())runPingTest();
+    if(!WiFi.isConnected() && !isPortalRunning){
+        Serial.println(">WM: failed to connect, starting config portal..");
+        startWifiManager();
+        wm.setConfigPortalTimeout(60);
+        wm.startConfigPortal("CanAirIO Config", "CanAirIO");
+        isPortalRunning=true;
+        timeStamp = millis();
+    }
+    if(WiFi.isConnected()) {
+        if(millis() - timeStamp > 15000) {
+            runPingTest();
+            timeStamp = millis();
+        }
+    } else {
+        if (millis() - timeStamp > 60000) {
+            Serial.println(">WD: WiFi is disconnected!");
+            WiFi.disconnect();
+            isPortalRunning=false;
+            timeStamp = millis();
+        }
+    }
 }
