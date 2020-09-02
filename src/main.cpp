@@ -14,6 +14,8 @@ char influx_port[6];     // influxdb server port
 char influx_db[32];      // influxdb database name
 char devicename[32];     // CanAirIO station name
 
+// setup custom parameters
+// id/name  placeholder/prompt  default  length
 WiFiManagerParameter custom_influx_server("server", "influx server", influx_server, 40);
 WiFiManagerParameter custom_influx_port("port", "influx port", influx_port, 6);
 WiFiManagerParameter custom_influx_db("influxdb", "database", influx_db, 32);
@@ -23,7 +25,10 @@ WiFiManagerParameter custom_devicename("devicename", "device name", devicename, 
 bool shouldSaveConfig = false;
 bool isPortalRunning = true;
 
-#define GPIO_LED_GREEN 22  // Led on TTGO board (black)
+#define GPIO_LED_GREEN          22  // Led on TTGO board (black)
+#define PORTAL_TIMEOUT          60  // Config portal timeout in seconds
+#define APP_REFRESH_TIME        10  // polling time for check the app
+
 
 void blinkOnboardLed() {
     digitalWrite(GPIO_LED_GREEN, LOW);
@@ -158,14 +163,14 @@ void startWifiManager() {
     }
     else {
         Serial.println(">WM: Config portal is running");
-        isPortalRunning=true;
     }
+    // always start configportal for a little while
+    wm.setConfigPortalTimeout(PORTAL_TIMEOUT);
+    wm.startConfigPortal("CanAirIO Config", "CanAirIO");
+    isPortalRunning=true;
 }
 
 void setupWifiManager() {
-    // setup custom parameters
-    // id/name  placeholder/prompt  default  length
-
     //adding custom parameters for CanAirIO device configuration
     wm.addParameter(&custom_devicename);
     wm.addParameter(&custom_influx_server);
@@ -176,10 +181,17 @@ void setupWifiManager() {
     wm.setConfigPortalBlocking(false);
     //set config save notify callback
     wm.setSaveConfigCallback(saveConfigCallback);
-    // always start configportal for a little while
-    // wm.setConfigPortalTimeout(60);
-    // wm.startConfigPortal("CanAirIO Config", "CanAirIO");
+}
 
+int keepAliveTick;
+
+void keepAlivePortal(){
+    if (isPortalRunning && keepAliveTick++ > PORTAL_TIMEOUT / APP_REFRESH_TIME) {
+        Serial.println("-AV: App ok. Disconnecting Config portal.");
+        wm.stopConfigPortal();
+        keepAliveTick=0;
+        isPortalRunning = false;
+    }
 }
 
 void setup() {
@@ -195,29 +207,26 @@ void setup() {
     setupWifiManager();
     startWifiManager();
     Serial.println(">VD: setup ready!");
-    
 }
-
 
 void loop() {
     static uint_fast64_t timeStamp = 0;
     wm.process();
     if(!WiFi.isConnected() && !isPortalRunning){
-        Serial.println(">WM: failed to connect, starting config portal..");
+        Serial.println("-AW: failed to connect, starting config portal..");
         startWifiManager();
-        wm.setConfigPortalTimeout(60);
-        wm.startConfigPortal("CanAirIO Config", "CanAirIO");
         isPortalRunning=true;
         timeStamp = millis();
     }
     if(WiFi.isConnected()) {
-        if(millis() - timeStamp > 15000) {
-            runPingTest();
+        if(millis() - timeStamp > APP_REFRESH_TIME*1000) {   
+            runPingTest();                    // <== Application code running here
             timeStamp = millis();
+            keepAlivePortal();
         }
     } else {
-        if (millis() - timeStamp > 60000) {
-            Serial.println(">WD: WiFi is disconnected!");
+        if (millis() - timeStamp > PORTAL_TIMEOUT*1000) {
+            Serial.println("-AW: WiFi is disconnected!");
             WiFi.disconnect();
             isPortalRunning=false;
             timeStamp = millis();
