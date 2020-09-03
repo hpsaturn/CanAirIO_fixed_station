@@ -6,8 +6,8 @@
 #include <SPIFFS.h>
 #endif
 
-#define PORTAL_TIMEOUT          60  // Config portal timeout in seconds
-#define APP_REFRESH_TIME        15  // polling time for check the app
+#define PORTAL_TIMEOUT          120  // Config portal timeout in seconds
+#define APP_REFRESH_TIME        15   // polling time for check the app
 
 struct configStruct {
     char influx_server[40];  // influxdb server IP
