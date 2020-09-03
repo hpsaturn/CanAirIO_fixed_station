@@ -1,6 +1,6 @@
-# CanAirIO_fixed_station
+# CanAirIO fixed station
 
-Reduced and improved version for CanAirIO fixed stations
+Reduced and improved version for CanAirIO fixed stations. The current firmware is in development, and it should be support `ESP32` and `ESP8266` devices. The main code is a abstraction with custom parameters of WifiManager library for those microcontrollers.
 
 # Firmware
 
