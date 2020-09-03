@@ -6,7 +6,7 @@
 #include <SPIFFS.h>
 #endif
 
-#define PORTAL_TIMEOUT          120  // Config portal timeout in seconds
+#define PORTAL_TIMEOUT          90  // Config portal timeout in seconds
 #define APP_REFRESH_TIME        15   // polling time for check the app
 
 struct configStruct {
