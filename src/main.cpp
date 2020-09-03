@@ -11,9 +11,6 @@ void blinkOnboardLed() {
 }
 
 void runPingTest() {
-    Serial.print(">VD: Pinging:\t");
-    Serial.print(getConfig().influx_server);
-
     // if (Ping.ping(getConfig().influx_server)) {
     //     blinkOnboardLed();
     //     Serial.println(" -> Success!!");
@@ -48,6 +45,8 @@ void loop() {
     if(WiFi.isConnected()) {
         if(millis() - timeStamp > APP_REFRESH_TIME*1000) {   
             // runPingTest();                    // <== Application code running here
+            Serial.print(">VD: Pinging:\t");
+            Serial.println(getConfig().influx_server);
             keepAlivePortal();                // validate if portal should be on
             timeStamp = millis();
         }
