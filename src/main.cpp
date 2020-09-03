@@ -1,5 +1,5 @@
 #include <WiFiConnect.hpp>  // Abstraction and handler of WifiManager
-#include <ESP32Ping.h>      // Only for tests
+// #include <ESP32Ping.h>      // Only for tests
 
 #define GPIO_LED_GREEN          22  // Led on TTGO board (black)
 
@@ -14,12 +14,12 @@ void runPingTest() {
     Serial.print(">VD: Pinging:\t");
     Serial.print(getConfig().influx_server);
 
-    if (Ping.ping(getConfig().influx_server)) {
-        blinkOnboardLed();
-        Serial.println(" -> Success!!");
-    } else {
-        Serial.println(" -> Error :(");
-    }
+    // if (Ping.ping(getConfig().influx_server)) {
+    //     blinkOnboardLed();
+    //     Serial.println(" -> Success!!");
+    // } else {
+    //     Serial.println(" -> Error :(");
+    // }
 }
 
 void setup() {
@@ -47,7 +47,7 @@ void loop() {
     }
     if(WiFi.isConnected()) {
         if(millis() - timeStamp > APP_REFRESH_TIME*1000) {   
-            runPingTest();                    // <== Application code running here
+            // runPingTest();                    // <== Application code running here
             keepAlivePortal();                // validate if portal should be on
             timeStamp = millis();
         }
