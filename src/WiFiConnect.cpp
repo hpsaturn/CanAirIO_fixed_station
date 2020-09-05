@@ -151,6 +151,7 @@ void setupWifiManager() {
     wm.setConfigPortalBlocking(false);
     //set config save notify callback
     wm.setSaveConfigCallback(saveConfigCallback);
+    wm.setEnableConfigPortal(true);
 }
 
 int keepAliveTick;
