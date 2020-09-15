@@ -59,5 +59,9 @@ secrets.load.*
 *.zip
 wiki
 web
+espota.py
+esptool.py
+md5output.txt
+
 
 
