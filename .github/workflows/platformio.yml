@@ -30,4 +30,4 @@ jobs:
       - uses: actions/upload-artifact@v1
         with:
           name: firmware
-          path: ./releases/installer/*.zip
+          path: releases/installer/canairio_rev*.zip
