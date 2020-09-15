@@ -25,12 +25,9 @@ jobs:
           platformio update
       - name: Build test
         run: |
-          pio run -e TTGO_T7
+          ./build all
+          ./build installer
       - uses: actions/upload-artifact@v1
         with:
           name: firmware
-          path: .pio/build/TTGO_T7/firmware.bin
-      - uses: actions/upload-artifact@v1
-        with:
-          name: partitions
-          path: .pio/build/TTGO_T7/partitions.bin
+          path: ./releases/installer/*.zip
