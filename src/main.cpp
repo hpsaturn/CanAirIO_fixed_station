@@ -6,9 +6,11 @@
 #include <ESP8266Ping.h>
 #endif
 
-
-
+#ifdef TTGO_T7
 #define GPIO_LED_GREEN          22  // Led on TTGO board (black)
+#else
+#define GPIO_LED_GREEN          LED_BUILTIN
+#endif
 
 void blinkOnboardLed() {
     digitalWrite(GPIO_LED_GREEN, LOW);
