@@ -1,8 +1,16 @@
 #include <WiFiConnect.hpp>  // Abstraction and handler of WifiManager
+
+#ifdef ESP32
 #include <ESP32Ping.h>      // Only for tests
+#elif ESP8266
+#include <ESP8266Ping.h>
+#endif
 
+#ifdef TTGO_T7
 #define GPIO_LED_GREEN          22  // Led on TTGO board (black)
-
+#else
+#define GPIO_LED_GREEN          LED_BUILTIN
+#endif
 
 void blinkOnboardLed() {
     digitalWrite(GPIO_LED_GREEN, LOW);
@@ -13,7 +21,6 @@ void blinkOnboardLed() {
 void runPingTest() {
     Serial.print(">VD: Pinging:\t");
     Serial.print(getConfig().influx_server);
-
     if (Ping.ping(getConfig().influx_server)) {
         blinkOnboardLed();
         Serial.println(" -> Success!!");

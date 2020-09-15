@@ -134,7 +134,7 @@ void startWifiManager() {
     // always start configportal for a little while
     wm.setConfigPortalTimeout(PORTAL_TIMEOUT);
     wm.startConfigPortal("CanAirIO Config", "CanAirIO");
-    WiFi.setHostname("CanAirIO");
+    // WiFi.setHostname("CanAirIO");
     portal_running=true;
 }
 
@@ -151,6 +151,7 @@ void setupWifiManager() {
     wm.setConfigPortalBlocking(false);
     //set config save notify callback
     wm.setSaveConfigCallback(saveConfigCallback);
+    wm.setEnableConfigPortal(true);
 }
 
 int keepAliveTick;

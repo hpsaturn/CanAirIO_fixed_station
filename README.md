@@ -21,17 +21,20 @@ pio run --target upload
 
 You should have something like this:
 ```python
-Building .pio/build/ttgo-display/firmware.bin
-RAM:   [==        ]  19.7% (used 64684 bytes from 327680 bytes)
-Flash: [========= ]  86.4% (used 1698140 bytes from 1966080 bytes)
+Building .pio/build/WEMOS/firmware.bin
+Checking size .pio/build/WEMOS/firmware.elf
+Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
+RAM:   [=         ]  12.3% (used 40432 bytes from 327680 bytes)
+Flash: [======    ]  64.9% (used 850800 bytes from 1310720 bytes)
 esptool.py v2.6
-============== [SUCCESS] Took 33.86 seconds ==================
+===================== [SUCCESS] Took 8.44 seconds =======================
 
-Environment       Status    Duration
-----------------  --------  ------------
-ttgo-display      SUCCESS   00:00:33.861
-ttgo-display-ota  IGNORED
-============= 1 succeeded in 00:00:33.861 =====================
+Environment    Status    Duration
+-------------  --------  ------------
+WEMOS          SUCCESS   00:00:08.441
+TTGO_T7        IGNORED
+nodemcuv2      IGNORED
+===================== 1 succeeded in 00:00:08.441 ========================
 ```
 
 Only in the first time, please upload the config file too:
