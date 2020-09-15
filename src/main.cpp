@@ -1,6 +1,12 @@
 #include <WiFiConnect.hpp>  // Abstraction and handler of WifiManager
+
+#ifdef ESP32
 #include <ESP32Ping.h>      // Only for tests
-// #include <ESP8266Ping.h>
+#elif ESP8266
+#include <ESP8266Ping.h>
+#endif
+
+
 
 #define GPIO_LED_GREEN          22  // Led on TTGO board (black)
 
