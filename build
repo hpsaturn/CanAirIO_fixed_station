@@ -80,10 +80,10 @@ buildInstaller () {
   updateFlavorBinaries
   printOutput
   cd $INSDIR/..
-  rm -f canairio_rev${SRC_REV}_${DATE}.zip
-  zip -r canairio_rev${SRC_REV}_${DATE}.zip canairio_installer
+  rm -f canairio_installer.zip
+  zip -r canairio_installer.zip canairio_installer
   echo ""
-  du -hs canairio_rev${SRC_REV}_${DATE}.zip
+  du -hs canairio_installer.zip
   echo ""
 }
 

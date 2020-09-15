@@ -29,5 +29,5 @@ jobs:
           ./build installer
       - uses: actions/upload-artifact@v1
         with:
-          name: firmware
-          path: releases/installer/canairio_rev*.zip
+          name: firmware_installer
+          path: releases/installer/canairio_installer.zip
