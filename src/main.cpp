@@ -39,7 +39,6 @@ void setup() {
     digitalWrite(GPIO_LED_GREEN, HIGH);
 
     setupWifiManager();
-    startWifiManager();
     
     Serial.println(">VD: setup ready!");
 }
@@ -47,23 +46,18 @@ void setup() {
 void loop() {
     static uint_fast64_t timeStamp = 0;
     wifiConnectLoop();
-    if(!WiFi.isConnected() && !isPortalRunning()){
-        Serial.println("-AW: failed to connect, starting config portal..");
-        startWifiManager();
-        timeStamp = millis();
-    }
     if(WiFi.isConnected()) {
         if(millis() - timeStamp > APP_REFRESH_TIME*1000) {   
             runPingTest();                    // <== Application code running here
-            keepAlivePortal();                // validate if portal should be on
             timeStamp = millis();
         }
     } else {
-        if (millis() - timeStamp > PORTAL_TIMEOUT*1000) {
+        if (millis() - timeStamp > WIFI_TIMEOUT*1000) {
             Serial.println("-AW: WiFi is disconnected!");
-            WiFi.disconnect();
-            restartWifiManager();
             timeStamp = millis();
+            WiFi.disconnect();
+            delay(1000);
+            ESP.restart();
         }
     }
 }

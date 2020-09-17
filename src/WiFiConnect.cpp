@@ -14,8 +14,6 @@ WiFiManagerParameter custom_devicename("devicename", "device name", cfg.devicena
 //flag for saving data
 bool shouldSaveConfig = false;
 
-bool portal_running = true;
-
 void setupSpiffs() {
     //clean FS, for testing
     //SPIFFS.format();
@@ -120,22 +118,12 @@ void saveConfigCallback() {
     writeConfigFile();
 }
 
-void startWifiManager() {
-    //automatically connect using saved credentials if they exist
-    //If connection fails it starts an access point with the specified name
-    if(wm.autoConnect("CanAirIO_ConfigMe!")){
-        Serial.println(">WM: connected! :)");
-    }
-    else {
-        Serial.println(">WM: config portal is running..");
-    }
-    readCurrentValues();
-    printConfigValues();
-    // always start configportal for a little while
-    wm.setConfigPortalTimeout(PORTAL_TIMEOUT);
+void startConfigPortal(){
+    wm.setConfigPortalBlocking(false);
+    //set config save notify callback
+    wm.setSaveConfigCallback(saveConfigCallback);
     wm.startConfigPortal("CanAirIO Config", "CanAirIO");
-    // WiFi.setHostname("CanAirIO");
-    portal_running=true;
+    Serial.println(">WM: config portal is running..");
 }
 
 void setupWifiManager() {
@@ -148,29 +136,18 @@ void setupWifiManager() {
     wm.addParameter(&custom_influx_port);
     //reset settings - wipe credentials for testing
     // wm.resetSettings();
-    wm.setConfigPortalBlocking(false);
-    //set config save notify callback
-    wm.setSaveConfigCallback(saveConfigCallback);
-    wm.setEnableConfigPortal(true);
-}
-
-int keepAliveTick;
-
-void keepAlivePortal(){
-    if (portal_running && PORTAL_TIMEOUT > 0 && keepAliveTick++ > PORTAL_TIMEOUT / APP_REFRESH_TIME) {
-        Serial.println(">AV: App ok. Disconnecting Config portal.");
-        wm.stopConfigPortal();
-        keepAliveTick=0;
-        portal_running = false;
+    startConfigPortal();
+    //automatically connect using saved credentials if they exist
+    //If connection fails it starts an access point with the specified name
+    if(wm.autoConnect("CanAirIO Config", "CanAirIO")){
+        Serial.println(">WM: connected! :)");
+        #ifdef ESP32
+        WiFi.setHostname("CanAirIO");
+        #endif
     }
-}
+    readCurrentValues();
+    printConfigValues();
 
-void restartWifiManager(){
-    portal_running = false;
-}
-
-bool isPortalRunning(){
-    return portal_running;
 }
 
 void wifiConnectLoop(){

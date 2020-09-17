@@ -6,9 +6,9 @@
 #include <SPIFFS.h>
 #endif
 
-#define PORTAL_TIMEOUT          90  // Config portal timeout in seconds
-#define APP_REFRESH_TIME        15   // polling time for check the app
-
+#define WIFI_TIMEOUT            60  // Config portal timeout
+#define APP_REFRESH_TIME        15  // polling time for check the app
+ 
 struct configStruct {
     char influx_server[40];  // influxdb server IP
     char influx_port[6];     // influxdb server port
@@ -16,15 +16,7 @@ struct configStruct {
     char devicename[32];     // CanAirIO station name
 };
 
-bool isPortalRunning();
-
-void restartWifiManager();
-
 void setupWifiManager();
-
-void startWifiManager();
-
-void keepAlivePortal();
 
 void wifiConnectLoop();
 
