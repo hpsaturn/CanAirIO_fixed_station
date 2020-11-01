@@ -1,4 +1,6 @@
+#include <Arduino.h>
 #include <WiFiConnect.hpp>  // Abstraction and handler of WifiManager
+#include <Sensors.hpp>
 
 #ifdef ESP32
 #include <ESP32Ping.h>      // Only for tests
