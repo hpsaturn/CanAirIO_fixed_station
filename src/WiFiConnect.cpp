@@ -141,9 +141,7 @@ void setupWifiManager() {
     //If connection fails it starts an access point with the specified name
     if(wm.autoConnect("CanAirIO Config", "CanAirIO")){
         Serial.println(">WM: connected! :)");
-        #ifdef ESP32
-        WiFi.setHostname("CanAirIO");
-        #endif
+        wm.setHostname("CanAirIO");
     }
     readCurrentValues();
     printConfigValues();

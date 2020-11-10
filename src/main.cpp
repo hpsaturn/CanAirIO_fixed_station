@@ -1,4 +1,6 @@
+#include <Arduino.h>
 #include <WiFiConnect.hpp>  // Abstraction and handler of WifiManager
+#include <Sensors.hpp>
 
 #ifdef ESP32
 #include <ESP32Ping.h>      // Only for tests
@@ -11,6 +13,17 @@
 #else
 #define GPIO_LED_GREEN          LED_BUILTIN
 #endif
+
+
+void onSensorDataOk() {
+    Serial.print("-->[MAIN] PM1.0: "+sensors.getStringPM1());
+    Serial.print  (" PM2.5: " + sensors.getStringPM25());
+    Serial.println(" PM10: " + sensors.getStringPM10());
+}
+
+void onSensorDataError(const char * msg){
+    Serial.println(msg);
+}
 
 void blinkOnboardLed() {
     digitalWrite(GPIO_LED_GREEN, LOW);
@@ -39,6 +52,15 @@ void setup() {
     digitalWrite(GPIO_LED_GREEN, HIGH);
 
     setupWifiManager();
+
+    sensors.setSampleTime(5);                       // config sensors sample time interval
+    sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
+    sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
+    sensors.setDebugMode(true);                     // [optional] debug mode
+    sensors.init(sensors.Sensirion);                // Force detection to Sensirion sensor
+
+    if(sensors.isPmSensorConfigured())
+        Serial.println("-->[SETUP] Sensor configured: " + sensors.getPmDeviceSelected());
     
     Serial.println(">VD: setup ready!");
 }
@@ -60,4 +82,5 @@ void loop() {
             ESP.restart();
         }
     }
+    sensors.loop();  // read sensor data and showed it
 }
