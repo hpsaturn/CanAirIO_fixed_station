@@ -14,10 +14,10 @@ struct configStruct {
     char influx_port[6];     // influxdb server port
     char influx_db[32];      // influxdb database name
     char devicename[32];     // CanAirIO station name
-    char country_code[32];   // CanAirIO station name
-    double lat;
-    double lon;
-    int stime;
+    char country_code[32];   // Country code like US, CO
+    char stime[8];           // sample time
+    char lat[12];            // latitude
+    char lon[12];            // longitude
 };
 
 void setupWifiManager();
