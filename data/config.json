@@ -4,5 +4,5 @@
   "port":"8086",
   "devicename":"PM25_Station",
   "country_code":"CO",
-  "stime":10
+  "stime":"10"
 }
