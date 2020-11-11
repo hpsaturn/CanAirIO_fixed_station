@@ -2,5 +2,7 @@
   "influxdb":"canairio",
   "hostname":"influxdb.canair.io",
   "port":"8086",
-  "devicename":""
+  "devicename":"PM25_Station",
+  "country_code":"CO",
+  "stime":10
 }
