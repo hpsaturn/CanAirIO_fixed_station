@@ -48,6 +48,7 @@ updateFlavorBinaries() {
 
 clean () {
   rm -r $RELDIR/$BINDIR
+  rm -rf .pio
 }
 
 build () {
