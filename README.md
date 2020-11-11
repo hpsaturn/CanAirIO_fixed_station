@@ -16,6 +16,8 @@ git clone git@github.com:hpsaturn/CanAirIO_fixed_station.git
 
 Connect your device to USB cable , enter to `CanAirIO` directory and run:
 
+### ESP32 (default)
+
 ```python
 pio run --target upload
 ```
@@ -24,22 +26,32 @@ You should have something like this:
 
 ```python
 Building .pio/build/WEMOS/firmware.bin
-Checking size .pio/build/WEMOS/firmware.elf
-Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
 RAM:   [=         ]  12.3% (used 40432 bytes from 327680 bytes)
 Flash: [======    ]  64.9% (used 850800 bytes from 1310720 bytes)
-esptool.py v2.6
-===================== [SUCCESS] Took 8.44 seconds =======================
+===================== [SUCCESS] Took 8.44 seconds ======================
 
 Environment    Status    Duration
 -------------  --------  ------------
-WEMOS          SUCCESS   00:00:08.441
-TTGO_T7        IGNORED
+TTGO_T7        SUCCESS   00:00:08.441
+WEMOS          IGNORED
 nodemcuv2      IGNORED
-===================== 1 succeeded in 00:00:08.441 ========================
+===================== 1 succeeded in 00:00:08.441 ======================
 ```
 
-Only in the first time, please upload the config file too:
+for others boards please select your environment:
+
+### ESP8266
+
+The current environments are WEMOS, TTGO_T7, nodemcuv2 and esp12e, but please review the `platformio.ini` file for more.
+You can compile and upload the variant for example with:
+
+```python
+pio run -e esp12e --target upload
+```
+
+## Upload the config data
+
+Please edit the **config.json** file on `data` directory and set the parameters for your fixed station and only in the first time, please upload the config file with:
 
 ```python
 pio run --target uploadfs
@@ -47,11 +59,6 @@ pio run --target uploadfs
 
 ## Usage
 
-After the firmware installation you will should be have a `CanAirIO Config` wifi network, please connect and sign in on it for configure your CanAirIO device. The current config passw is `CanAirIO`.
+After the firmware installation you will should be have a `CanAirIO Config` wifi network (Hostpot), please connect and sign in on it for configure your CanAirIO device. The current config passw is `CanAirIO`.
 
-Also you can change the behaivor on the firmware for now with these variables:
-
-```java
-#define WIFI_TIMEOUT            60  // Config portal timeout
-#define APP_REFRESH_TIME        15  // polling time for check the app
-```
+---
