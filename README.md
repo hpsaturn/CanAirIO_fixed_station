@@ -1,6 +1,8 @@
+[![PlatformIO](https://github.com/hpsaturn/CanAirIO_fixed_station/workflows/PlatformIO/badge.svg)](https://github.com/hpsaturn/CanAirIO_fixed_station/actions/) ![ViewCount](https://views.whatilearened.today/views/github/hpsaturn/CanAirIO_fixed_station.svg)
+
 # CanAirIO fixed station
 
-Reduced and improved version for CanAirIO fixed stations. The current firmware is in development, and it should be support `ESP32` and `ESP8266` devices. The main code is a abstraction with custom parameters of WifiManager library for those microcontrollers.
+Reduced and improved version for CanAirIO fixed stations. The current firmware is in **development**, and it should be support `ESP32` and `ESP8266` devices. The main code is a abstraction with custom parameters of WifiManager library for those microcontrollers.
 
 ## Firmware
 
