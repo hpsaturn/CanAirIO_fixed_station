@@ -2,7 +2,7 @@
 
 # CanAirIO fixed station
 
-Reduced and improved version for CanAirIO fixed stations. The current firmware is in **development**, and it should be support `ESP32` and `ESP8266` devices. The main code is a abstraction with custom parameters of WifiManager library for those microcontrollers.
+Reduced and improved version for a possible CanAirIO fixed stations. The current firmware is in **development**, and it should be support `ESP32` and `ESP8266` devices. The main code is a abstraction with custom parameters of WifiManager library for those microcontrollers. Also it use the [canairio_sensorlib](https://github.com/kike-canaries/canairio_sensorlib) library for handled multiple sensors and **influxdb** for save the output data, you can use the CanAirIO test server or your custom instance.
 
 ## Firmware
 
@@ -57,6 +57,21 @@ Please edit the **config.json** file on `data` directory and set the parameters 
 
 ```python
 pio run --target uploadfs
+```
+
+The config json file is like this:
+
+```json
+{
+  "influxdb":"canairio",
+  "hostname":"influxdb.canair.io",
+  "port":"8086",
+  "devicename":"PM25_Station",
+  "country_code":"CO",
+  "stime":"10",
+  "lat":"52.51",
+  "lon":"13.22"
+}
 ```
 
 ## Usage
