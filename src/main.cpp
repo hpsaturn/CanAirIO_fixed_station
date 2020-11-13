@@ -150,8 +150,8 @@ void sensorsInit() {
     sensors.setSampleTime(5);                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(false);                    // [optional] debug mode
-    sensors.init(sensors.Sensirion);                // Force detection to Sensirion sensor
+    sensors.setDebugMode(true);                    // [optional] debug mode
+    sensors.init(sensors.Auto);                 // Force detection to Sensirion sensor
 
     if(sensors.isPmSensorConfigured())
         Serial.println(">VM: [SENSORS] Sensor configured: " + sensors.getPmDeviceSelected());
