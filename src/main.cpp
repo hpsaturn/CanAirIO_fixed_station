@@ -9,12 +9,6 @@
 #include <ESP8266Ping.h>
 #endif
 
-#ifdef TTGO_T7
-#define GPIO_LED_GREEN          22  // Led on TTGO board (black)
-#else
-#define GPIO_LED_GREEN          LED_BUILTIN
-#endif
-
 #define PUBLISH_INTERVAL 30       // publish to cloud each 30 seconds
 #define WIFI_RETRY_CONNECTION 30  // 30 seconds wait for wifi connection
 #define IFX_RETRY_CONNECTION 5    // influxdb publish retry 
@@ -40,9 +34,9 @@ String getDeviceId() {
 }
 
 void blinkOnboardLed() {
-    digitalWrite(GPIO_LED_GREEN, HIGH);
+    digitalWrite(BUILTIN_LED , LOW);
     delay(50);  // fast blink for low power
-    digitalWrite(GPIO_LED_GREEN, LOW);
+    digitalWrite(BUILTIN_LED , HIGH);
 }
 
 void runPingTest() {
@@ -150,8 +144,13 @@ void sensorsInit() {
     sensors.setSampleTime(atoi(getConfig().stime));                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(false);                     // [optional] debug mode
-    sensors.init(atoi(getConfig().stype));                // Force Auto configuration
+    sensors.setDebugMode(false);                    // [optional] debug mode
+    sensors.init(atoi(getConfig().stype),5,6);      // Force Auto configuration
+#ifdef ESP32
+    sensors.init(atoi(getConfig().stype));          // Sensor selected on captive portal
+#elif ESP8266
+    sensors.init(atoi(getConfig().stype),5,6);      // Sensor configured on pines 5 and 6 (SwSerial 8266)
+#endif
     // sensors.init(sensors.Sensirion);                // Force detection to Sensirion sensor
     // sensors.init(sensors.Auto,5,6);                 // Auto configuration and custom pines (ESP8266)
 
@@ -168,8 +167,8 @@ void setup() {
     Serial.println();
 
     // GPIO LED setup
-    pinMode(GPIO_LED_GREEN, OUTPUT);
-    digitalWrite(GPIO_LED_GREEN, LOW);
+    pinMode(BUILTIN_LED , OUTPUT);
+    digitalWrite(BUILTIN_LED , HIGH);
 
     setupWifiManager();
     influxDbInit();
