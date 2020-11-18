@@ -4,5 +4,8 @@
   "port":"8086",
   "devicename":"PM25_Fixed_Station",
   "country_code":"CO",
-  "stime":"10"
+  "stype":"0",
+  "stime":"10",
+  "lat":"0.0",
+  "lon":"0.0"
 }

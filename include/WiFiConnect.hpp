@@ -16,6 +16,7 @@ struct configStruct {
     char devicename[32];     // CanAirIO station name
     char country_code[32];   // Country code like US, CO
     char stime[8];           // sample time
+    char stype[4];           // sensor type
     char lat[12];            // latitude
     char lon[12];            // longitude
 };

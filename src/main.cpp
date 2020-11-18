@@ -147,11 +147,11 @@ void onSensorDataError(const char * msg){
 }
 
 void sensorsInit() {
-    sensors.setSampleTime(5);                       // config sensors sample time interval
+    sensors.setSampleTime(atoi(getConfig().stime));                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(true);                     // [optional] debug mode
-    sensors.init();                                 // Force Auto configuration
+    sensors.setDebugMode(false);                     // [optional] debug mode
+    sensors.init(atoi(getConfig().stype));                // Force Auto configuration
     // sensors.init(sensors.Sensirion);                // Force detection to Sensirion sensor
     // sensors.init(sensors.Auto,5,6);                 // Auto configuration and custom pines (ESP8266)
 
