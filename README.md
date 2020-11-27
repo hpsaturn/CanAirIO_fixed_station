@@ -2,7 +2,7 @@
 
 # CanAirIO fixed station
 
-Reduced and improved version for a possible CanAirIO fixed stations. The current firmware is in **development**, and it should be support `ESP32` and `ESP8266` devices. The main code is a abstraction with custom parameters of WifiManager library for those microcontrollers. Also it use the [canairio_sensorlib](https://github.com/kike-canaries/canairio_sensorlib) library for handled multiple sensors and **influxdb** for save the output data, you can use the CanAirIO test server or your custom instance.
+Reduced and improved version for a possible CanAirIO device for fixed stations. The current firmware is in **development**, and it should be support `ESP32` and `ESP8266` devices. The main code is a abstraction with custom parameters of WifiManager library for those microcontrollers. Also it use the [canairio_sensorlib](https://github.com/kike-canaries/canairio_sensorlib) library for handled multiple sensors and **influxdb** for save the output data, you can use the CanAirIO test server or your custom instance.
 
 ## Firmware
 
