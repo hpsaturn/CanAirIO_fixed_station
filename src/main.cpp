@@ -1,20 +1,19 @@
 #include <Arduino.h>
 #include <WiFiConnect.hpp>  // Abstraction and handler of WifiManager
+#include <InfluxDbClient.h>
 #include <Sensors.hpp>
-#include <InfluxArduino.hpp>
-
-#ifdef ESP32
-#include <ESP32Ping.h>      // Only for tests
-#elif ESP8266
-#include <ESP8266Ping.h>
-#endif
 
 #define PUBLISH_INTERVAL 30       // publish to cloud each 30 seconds
 #define WIFI_RETRY_CONNECTION 30  // 30 seconds wait for wifi connection
 #define IFX_RETRY_CONNECTION 5    // influxdb publish retry 
 
-InfluxArduino influx;
 uint32_t ifxdbwcount;
+int rssi = 0;
+String hostId = "";
+
+InfluxDBClient influx;
+Point sensor ("fixed_stations_01");
+bool ifx_ready;
 
 /******************************************************************************
 *   T O O L S
@@ -39,27 +38,49 @@ void blinkOnboardLed() {
     digitalWrite(BUILTIN_LED , HIGH);
 }
 
-void runPingTest() {
-    Serial.print(">VD: Pinging:\t");
-    Serial.print(getConfig().influx_server);
-    if (Ping.ping(getConfig().influx_server)) {
-        blinkOnboardLed();
-        Serial.println(" -> Success!!");
-    } else {
-        Serial.println(" -> Error :(");
-    }
-}
-
 /******************************************************************************
 *   I N F L U X D B   M E T H O D S
 ******************************************************************************/
 
+bool influxDbIsConfigured() {
+    if(getConfig().influx_db != nullptr && getConfig().influx_server != nullptr) {
+        Serial.println("-->[W][IFDB] ifxdb is configured but Location (GeoHash) is missing!");
+        return true;
+    }
+    return false;
+}
+
+String influxdbGetStationName() {
+    String name = "";
+    // String name = ""+cfg.geo.substring(0,3);         // GeoHash ~70km https://en.wikipedia.org/wiki/Geohash
+    // name = name + String(FLAVOR).substring(0,7);     // Flavor short, firmware name (board)
+    name = name + String(getConfig().devicename).substring(10);    // MAC address 4 digts
+    name.replace("_","");
+    name.replace(":","");
+    name.toUpperCase();
+
+    return name;
+}
+
+void influxDbAddTags() {
+    sensor.addTag("mac", getConfig().devicename);
+    // sensor.addTag("geo3",cfg.geo.substring(0,3).c_str());
+    sensor.addTag("name",influxdbGetStationName().c_str());
+}
+
 void influxDbInit() {
-    if (WiFi.isConnected()) {
-        influx.configure(getConfig().influx_db, getConfig().influx_server);  //third argument (port number) defaults to 8086
-        Serial.print(">VM: [INFLUXDB] using HTTPS: ");
-        Serial.println(influx.isSecure());  //will be true if you've added the InfluxCert.hpp file.
-        Serial.println(">VM: [INFLUXDB] connected.");
+    if (!ifx_ready && WiFi.isConnected() && influxDbIsConfigured()) {
+        String url = "http://"+String(getConfig().influx_server)+":"+String(getConfig().influx_port);
+        influx.setInsecure();
+        // influx = InfluxDBClient(url.c_str(),cfg.ifx.db.c_str());
+        influx.setConnectionParamsV1(url.c_str(),getConfig().influx_db);
+        Serial.printf("-->[IFDB] config: %s@%s:%s\n",getConfig().influx_db,getConfig().influx_server,getConfig().influx_port);
+        influxDbAddTags();
+        if(influx.validateConnection()) {
+            Serial.printf("-->[IFDB] connected to %s\n",influx.getServerUrl().c_str());
+            ifx_ready = true;
+        }
+        else Serial.println("-->[E][IFDB] connection error!");
         delay(100);
     }
 }
@@ -67,41 +88,40 @@ void influxDbInit() {
 /**
  * @influxDbParseFields:
  *
- * Supported:
- * "id","pm1","pm25","pm10,"hum","tmp","lat","lng","alt","spd","stime","tstp"
- *
  */
-void influxDbParseFields(char* fields) {
-    sprintf(
-        fields,
-        "pm1=%u,pm25=%u,pm10=%u,hum=%f,tmp=%f,prs=%f,gas=%f,lat=%f,lng=%f,alt=%f,stime=%i",
-        sensors.getPM1(),
-        sensors.getPM25(),
-        sensors.getPM10(),
-        sensors.getHumidity(),
-        sensors.getTemperature(),
-        sensors.getPressure(),
-        sensors.getGas(),
-        atof(getConfig().lat),
-        atof(getConfig().lon),
-        sensors.getAltitude(),
-        atoi(getConfig().stime)
-        );
-}
+void influxDbParseFields() {
+    // select humi and temp for publish it
+    float humi = sensors.getHumidity();
+    if(humi == 0.0) humi = sensors.getCO2humi();
+    float temp = sensors.getTemperature();
+    if(temp == 0.0) temp = sensors.getCO2temp();
 
-void influxDbAddTags(char* tags) {
-    sprintf(tags, "dname=%s,mac=%s,dtype=%s",
-            getConfig().devicename,
-            getDeviceId().c_str(),
-            sensors.getPmDeviceSelected().c_str());
+    sensor.clearFields();
+
+    sensor.addField("pm1",sensors.getPM1());
+    sensor.addField("pm25",sensors.getPM25());
+    sensor.addField("pm10",sensors.getPM10());
+    sensor.addField("co2",sensors.getCO2());
+    sensor.addField("co2hum",sensors.getCO2humi());
+    sensor.addField("co2tmp",sensors.getCO2temp());
+    sensor.addField("tmp",temp);
+    sensor.addField("hum",humi);
+    // sensor.addField("geo",cfg.geo.c_str());
+    sensor.addField("prs",sensors.getPressure());
+    sensor.addField("gas",sensors.getGas());
+    sensor.addField("alt",sensors.getAltitude());
+    sensor.addField("name",influxdbGetStationName().c_str());
 }
 
 bool influxDbWrite() {
-    char tags[128];
-    influxDbAddTags(tags);
-    char fields[256];
-    influxDbParseFields(fields);
-    return influx.write(getConfig().country_code, tags, fields);
+    influxDbParseFields();
+    Serial.printf("[IFDB] %s\n",influx.pointToLineProtocol(sensor).c_str());
+    if (!influx.writePoint(sensor)) {
+        Serial.print("-->[E][IFDB] Write Point failed: ");
+        Serial.println(influx.getLastErrorMessage());
+        return false;
+    }
+    return true;
 }
 
 void influxDbLoop() {
@@ -109,19 +129,15 @@ void influxDbLoop() {
     if (atoi(getConfig().stime) > 0 && millis() - timeStamp > atoi(getConfig().stime) * 2 * 1000) {
         timeStamp = millis();
         if (sensors.isDataReady() && WiFi.isConnected()) {
-            int ifx_retry = 0;
             Serial.printf(">VM: [INFLUXDB] %s ", getConfig().devicename);
             Serial.printf("to %s\n", getConfig().influx_server);
-            while (!influxDbWrite() && (ifx_retry++ < IFX_RETRY_CONNECTION)) {
-                delay(200);
-            }
-            if (ifx_retry > IFX_RETRY_CONNECTION) {
-                Serial.println("-EE: [INFLUXDB] write error, try wifi restart..");
-                // wifiRestart();
-            } else {
-                Serial.printf(">VM: [INFLUXDB] write done. Response: %d\n", influx.getResponse());
+
+            if (influxDbWrite()){
+                Serial.println("-->[IFDB] write done.");
                 blinkOnboardLed();
             }
+            else
+                Serial.printf("-->[E][IFDB] write error to %s@%s:%s \n",getConfig().devicename,getConfig().influx_server,getConfig().influx_port);
         }
     }  
 }
