@@ -178,6 +178,9 @@ void sensorsInit() {
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(false);                    // [optional] debug mode
+
+    sensors.detectI2COnly(true);             // force only i2c sensors
+
     sensors.init(atoi(getConfig().stype),5,6);      // Force Auto configuration
 #ifdef ESP32
     sensors.init(atoi(getConfig().stype));          // Sensor selected on captive portal
