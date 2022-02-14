@@ -7,6 +7,11 @@
 #define WIFI_RETRY_CONNECTION 30  // 30 seconds wait for wifi connection
 #define IFX_RETRY_CONNECTION 5    // influxdb publish retry 
 
+////////////////////////////////////////////////
+UNIT selectUnit = UNIT::NUNIT;
+UNIT nextUnit = UNIT::NUNIT;
+///////////////////////////////////////////////
+
 uint32_t ifxdbwcount;
 int rssi = 0;
 String hostId = "";
@@ -156,6 +161,18 @@ void onSensorDataError(const char * msg){
     Serial.println("-EE: [SENSORS] "+String(msg));
 }
 
+
+/////////////////////////////////////////////////////////////////////////
+void printSensorsDetected() {
+    Serial.println("-->[INFO] Sensors detected\t: " + String(sensors.getSensorsRegisteredCount()));
+//    gui.welcomeAddMessage("Sensors: " + String(sensors.getSensorsRegisteredCount()));
+    int i = 0;
+    while (sensors.getSensorsRegistered()[i++] != 0) {
+//        gui.welcomeAddMessage(sensors.getSensorName((SENSORS)sensors.getSensorsRegistered()[i - 1]));
+    }
+}
+/////////////////////////////////////////////////////////////////////////
+
 void sensorsInit() {
     sensors.setSampleTime(atoi(getConfig().stime));                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
@@ -170,9 +187,39 @@ void sensorsInit() {
     // sensors.init(sensors.Sensirion);                // Force detection to Sensirion sensor
     // sensors.init(sensors.Auto,5,6);                 // Auto configuration and custom pines (ESP8266)
 
-    if(sensors.isPmSensorConfigured())
-        Serial.println(">VM: [SENSORS] Sensor configured: " + sensors.getPmDeviceSelected());
+//    if(sensors.isPmSensorConfigured())
+//        Serial.println(">VM: [SENSORS] Sensor configured: " + sensors.getPmDeviceSelected());
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ if(sensors.getSensorsRegisteredCount()==0){
+        Serial.println("-->[INFO] Main sensors detected\t: 0");
+//        gui.welcomeAddMessage("Not sensors detected");
+//        gui.welcomeAddMessage("Default: PAX");
+    }
+    else{
+        printSensorsDetected();    
+    }
+
+    Serial.printf("-->[INFO] registered units\t:\n");
+    delay(1000);
+    sensors.readAllSensors();                       // only to force to register all sensors
+//    gui.welcomeAddMessage("Units count: "+String(sensors.getUnitsRegisteredCount()));
+//    selectUnit = (UNIT) cfg.getUnitSelected();
+    Serial.printf("-->[INFO] restored saved unit \t: %s\n",sensors.getUnitName(selectUnit).c_str());
+    if (!sensors.isUnitRegistered(selectUnit)){
+        sensors.resetNextUnit();
+        selectUnit = sensors.getNextUnit();  // auto selection of sensor unit to show
+        Serial.printf("-->[INFO] not found! set to\t: %s\n",sensors.getUnitName(selectUnit).c_str());
+    }
+//    gui.welcomeAddMessage("Show unit: "+sensors.getUnitName(selectUnit));
+    sensors.printUnitsRegistered(true);
+    delay(300);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 /******************************************************************************
 *   M A I N
