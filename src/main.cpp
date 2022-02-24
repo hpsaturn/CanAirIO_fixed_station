@@ -12,7 +12,7 @@ int rssi = 0;
 String hostId = "";
 
 InfluxDBClient influx;
-Point sensor ("fixed_stations_01");
+Point sensor ("fixed_stations_esp8266");
 bool ifx_ready;
 
 /******************************************************************************
