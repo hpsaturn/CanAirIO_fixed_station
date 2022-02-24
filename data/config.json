@@ -3,9 +3,6 @@
   "hostname":"influxdb.canair.io",
   "port":"8086",
   "geohash":"9q8yv",
-  "country_code":"CO",
   "stype":"0",
-  "stime":"10",
-  "lat":"0.0",
-  "lon":"0.0"
+  "stime":"10"
 }

@@ -7,11 +7,6 @@
 #define WIFI_RETRY_CONNECTION 30  // 30 seconds wait for wifi connection
 #define IFX_RETRY_CONNECTION 5    // influxdb publish retry 
 
-////////////////////////////////////////////////
-UNIT selectUnit = UNIT::NUNIT;
-UNIT nextUnit = UNIT::NUNIT;
-///////////////////////////////////////////////
-
 uint32_t ifxdbwcount;
 int rssi = 0;
 String hostId = "";
@@ -69,16 +64,16 @@ String influxdbGetStationName() {
 }
 
 void influxDbAddTags() {
-    sensor.addTag("mac", getConfig().geohash);
-    // sensor.addTag("geo3",cfg.geo.substring(0,3).c_str());
+    sensor.addTag("mac",getDeviceId().c_str());
+    sensor.addTag("geo3", String(getConfig().geohash).substring(0,3).c_str());
     sensor.addTag("name",influxdbGetStationName().c_str());
+    sensor.addTag("rev","v"+String(VERSION)+"r"+String(REVISION));
 }
 
 void influxDbInit() {
     if (!ifx_ready && WiFi.isConnected() && influxDbIsConfigured()) {
         String url = "http://"+String(getConfig().influx_server)+":"+String(getConfig().influx_port);
         influx.setInsecure();
-        // influx = InfluxDBClient(url.c_str(),cfg.ifx.db.c_str());
         influx.setConnectionParamsV1(url.c_str(),getConfig().influx_db);
         Serial.printf("-->[IFDB] config: %s@%s:%s\n",getConfig().influx_db,getConfig().influx_server,getConfig().influx_port);
         influxDbAddTags();
@@ -103,7 +98,6 @@ void influxDbParseFields() {
     if(temp == 0.0) temp = sensors.getCO2temp();
 
     sensor.clearFields();
-
     sensor.addField("pm1",sensors.getPM1());
     sensor.addField("pm25",sensors.getPM25());
     sensor.addField("pm10",sensors.getPM10());
@@ -112,10 +106,11 @@ void influxDbParseFields() {
     sensor.addField("co2tmp",sensors.getCO2temp());
     sensor.addField("tmp",temp);
     sensor.addField("hum",humi);
-    // sensor.addField("geo",cfg.geo.c_str());
+    sensor.addField("geo",String(getConfig().geohash).substring(0,7).c_str());
     sensor.addField("prs",sensors.getPressure());
     sensor.addField("gas",sensors.getGas());
     sensor.addField("alt",sensors.getAltitude());
+    sensor.addField("rssi",WiFi.RSSI());
     sensor.addField("name",influxdbGetStationName().c_str());
 }
 
@@ -162,67 +157,21 @@ void onSensorDataError(const char * msg){
     Serial.println("-EE: [SENSORS] "+String(msg));
 }
 
-/////////////////////////////////////////////////////////////////////////
-void printSensorsDetected() {
-    Serial.println("-->[INFO] Sensors detected\t: " + String(sensors.getSensorsRegisteredCount()));
-//    gui.welcomeAddMessage("Sensors: " + String(sensors.getSensorsRegisteredCount()));
-    int i = 0;
-    while (sensors.getSensorsRegistered()[i++] != 0) {
-//        gui.welcomeAddMessage(sensors.getSensorName((SENSORS)sensors.getSensorsRegistered()[i - 1]));
-    }
-}
-/////////////////////////////////////////////////////////////////////////
-
 void sensorsInit() {
     sensors.setSampleTime(atoi(getConfig().stime));                       // config sensors sample time interval
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
-    sensors.setDebugMode(false);                    // [optional] debug mode
-
-    sensors.detectI2COnly(true);             // force only i2c sensors
-
+    sensors.setDebugMode(true);                    // [optional] debug mode
+    sensors.detectI2COnly(true);                    // force only i2c sensors
     sensors.init(atoi(getConfig().stype),5,6);      // Force Auto configuration
 #ifdef ESP32
     sensors.init(atoi(getConfig().stype));          // Sensor selected on captive portal
 #elif ESP8266
     sensors.init(atoi(getConfig().stype),5,6);      // Sensor configured on pines 5 and 6 (SwSerial 8266)
 #endif
-    // sensors.init(sensors.Sensirion);                // Force detection to Sensirion sensor
-    // sensors.init(sensors.Auto,5,6);                 // Auto configuration and custom pines (ESP8266)
-
-//    if(sensors.isPmSensorConfigured())
-//        Serial.println(">VM: [SENSORS] Sensor configured: " + sensors.getPmDeviceSelected());
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
- if(sensors.getSensorsRegisteredCount()==0){
-        Serial.println("-->[INFO] Main sensors detected\t: 0");
-//        gui.welcomeAddMessage("Not sensors detected");
-//        gui.welcomeAddMessage("Default: PAX");
-    }
-    else{
-        printSensorsDetected();    
-    }
-
-    Serial.printf("-->[INFO] registered units\t:\n");
-    delay(1000);
-    sensors.readAllSensors();                       // only to force to register all sensors
-//    gui.welcomeAddMessage("Units count: "+String(sensors.getUnitsRegisteredCount()));
-//    selectUnit = (UNIT) cfg.getUnitSelected();
-    Serial.printf("-->[INFO] restored saved unit \t: %s\n",sensors.getUnitName(selectUnit).c_str());
-    if (!sensors.isUnitRegistered(selectUnit)){
-        sensors.resetNextUnit();
-        selectUnit = sensors.getNextUnit();  // auto selection of sensor unit to show
-        Serial.printf("-->[INFO] not found! set to\t: %s\n",sensors.getUnitName(selectUnit).c_str());
-    }
-//    gui.welcomeAddMessage("Show unit: "+sensors.getUnitName(selectUnit));
+    delay(100);
     sensors.printUnitsRegistered(true);
-    delay(300);
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 /******************************************************************************
 *   M A I N
