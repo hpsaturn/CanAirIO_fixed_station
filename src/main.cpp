@@ -48,7 +48,7 @@ void blinkOnboardLed() {
 ******************************************************************************/
 
 bool influxDbIsConfigured() {
-    if(getConfig().influx_db != nullptr && getConfig().influx_server != nullptr) {
+    if(getConfig().influx_db != nullptr && getConfig().influx_server != nullptr && getConfig().geohash != nullptr) {
         Serial.println("-->[W][IFDB] ifxdb is configured but Location (GeoHash) is missing!");
         return true;
     }
@@ -57,18 +57,19 @@ bool influxDbIsConfigured() {
 
 String influxdbGetStationName() {
     String name = "";
-    // String name = ""+cfg.geo.substring(0,3);         // GeoHash ~70km https://en.wikipedia.org/wiki/Geohash
-    // name = name + String(FLAVOR).substring(0,7);     // Flavor short, firmware name (board)
-    name = name + String(getConfig().devicename).substring(10);    // MAC address 4 digts
+    name = name + String(getConfig().geohash).substring(0,3); // GeoHash ~70km https://en.wikipedia.org/wiki/Geohash
+    String flavor = String(FLAVOR);
+    if(flavor.length() > 6) flavor = flavor.substring(0,7); // validation possible issue with short names
+    name = name + flavor;                         // Flavor short, firmware name (board)
+    name = name + getDeviceId().substring(10);    // MAC address 4 digts
     name.replace("_","");
     name.replace(":","");
     name.toUpperCase();
-
     return name;
 }
 
 void influxDbAddTags() {
-    sensor.addTag("mac", getConfig().devicename);
+    sensor.addTag("mac", getConfig().geohash);
     // sensor.addTag("geo3",cfg.geo.substring(0,3).c_str());
     sensor.addTag("name",influxdbGetStationName().c_str());
 }
@@ -134,7 +135,7 @@ void influxDbLoop() {
     if (atoi(getConfig().stime) > 0 && millis() - timeStamp > atoi(getConfig().stime) * 2 * 1000) {
         timeStamp = millis();
         if (sensors.isDataReady() && WiFi.isConnected()) {
-            Serial.printf(">VM: [INFLUXDB] %s ", getConfig().devicename);
+            Serial.printf(">VM: [INFLUXDB] %s ", getConfig().geohash);
             Serial.printf("to %s\n", getConfig().influx_server);
 
             if (influxDbWrite()){
@@ -142,7 +143,7 @@ void influxDbLoop() {
                 blinkOnboardLed();
             }
             else
-                Serial.printf("-->[E][IFDB] write error to %s@%s:%s \n",getConfig().devicename,getConfig().influx_server,getConfig().influx_port);
+                Serial.printf("-->[E][IFDB] write error to %s@%s:%s \n",getConfig().geohash,getConfig().influx_server,getConfig().influx_port);
         }
     }  
 }

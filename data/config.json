@@ -2,7 +2,7 @@
   "influxdb":"canairio",
   "hostname":"influxdb.canair.io",
   "port":"8086",
-  "devicename":"PM25_Fixed_Station",
+  "geohash":"9q8yv",
   "country_code":"CO",
   "stype":"0",
   "stime":"10",
