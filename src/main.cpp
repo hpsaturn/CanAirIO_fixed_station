@@ -161,7 +161,6 @@ void onSensorDataError(const char * msg){
     Serial.println("-EE: [SENSORS] "+String(msg));
 }
 
-
 /////////////////////////////////////////////////////////////////////////
 void printSensorsDetected() {
     Serial.println("-->[INFO] Sensors detected\t: " + String(sensors.getSensorsRegisteredCount()));
