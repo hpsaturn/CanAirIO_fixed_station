@@ -1,6 +1,6 @@
-#include <ArduinoJson.h>  // https://github.com/bblanchon/ArduinoJson
-#include <FS.h>           // this needs to be first, or it all crashes and burns...
-#include <WiFiManager.h>  // https://github.com/tzapu/WiFiManager
+#include <ArduinoJson.h>
+#include <FS.h>
+#include <WiFiManager.h>
 
 #ifdef ESP32
 #include <SPIFFS.h>
@@ -13,12 +13,9 @@ struct configStruct {
     char influx_server[40];  // influxdb server IP
     char influx_port[6];     // influxdb server port
     char influx_db[32];      // influxdb database name
-    char devicename[32];     // CanAirIO station name
-    char country_code[32];   // Country code like US, CO
+    char geohash[32];        // CanAirIO geohash location
     char stime[8];           // sample time
     char stype[4];           // sensor type
-    char lat[12];            // latitude
-    char lon[12];            // longitude
 };
 
 void setupWifiManager();
