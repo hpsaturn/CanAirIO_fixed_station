@@ -1,0 +1,1 @@
+{"type": "CCP_ESP32", "version": "100", "host": "influxdb.canair.io", "port": 8080, "bin": "/releases/dev/canairio_CCP_ESP32_rev100.bin"}
