@@ -163,12 +163,11 @@ void sensorsInit() {
     sensors.setOnDataCallBack(&onSensorDataOk);     // all data read callback
     sensors.setOnErrorCallBack(&onSensorDataError); // [optional] error callback
     sensors.setDebugMode(true);                    // [optional] debug mode
-    sensors.detectI2COnly(true);                    // force only i2c sensors
-    sensors.init(atoi(getConfig().stype),5,6);      // Force Auto configuration
-#ifdef ESP32
+    sensors.detectI2COnly(false);                    // force only i2c sensors
+#ifdef CCP_ESP32
     sensors.init(atoi(getConfig().stype));          // Sensor selected on captive portal
-#elif ESP8266
-    sensors.init(atoi(getConfig().stype),5,6);      // Sensor configured on pines 5 and 6 (SwSerial 8266)
+#else
+    sensors.init(atoi(getConfig().stype),5,6);      // Sensor configured on pines 5 and 6 (RX and TX SwSerial 8266)
 #endif
     delay(100);
     sensors.printUnitsRegistered(true);
@@ -191,7 +190,7 @@ void setup() {
     sensorsInit();
    
     Serial.println(">VM: [SETUP] sample time : "+String(atoi(getConfig().stime))+" sec");
-    Serial.println(">VM: [SETUP] wifi timeout: "+String(WIFI_TIMEOUT/1000)+" sec");
+    Serial.println(">VM: [SETUP] wifi timeout: "+String(WIFI_TIMEOUT)+" sec");
     Serial.println(">VM: [SETUP] setup ready!");
 }
 
