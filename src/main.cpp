@@ -64,8 +64,9 @@ String influxdbGetStationName() {
 }
 
 void influxDbAddTags() {
+    String geo3 = String(getConfig().geohash);
     sensor.addTag("mac",getDeviceId().c_str());
-    sensor.addTag("geo3", String(getConfig().geohash).substring(0,3).c_str());
+    sensor.addTag("geo3", geo3.substring(0,3).c_str());
     sensor.addTag("name",influxdbGetStationName().c_str());
     sensor.addTag("rev","v"+String(VERSION)+"r"+String(REVISION));
 }
