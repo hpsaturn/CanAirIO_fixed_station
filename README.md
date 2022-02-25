@@ -1,8 +1,8 @@
 [![PlatformIO](https://github.com/hpsaturn/CanAirIO_fixed_station/workflows/PlatformIO/badge.svg)](https://github.com/hpsaturn/CanAirIO_fixed_station/actions/) ![ViewCount](https://views.whatilearened.today/views/github/hpsaturn/CanAirIO_fixed_station.svg)
 
-# CanAirIO fixed station
+# CanAirIO Captive Portal Version
 
-Reduced and improved version for a possible CanAirIO device for fixed stations. The current firmware is in **development**, and it should be support `ESP32` and `ESP8266` devices. The main code is a abstraction with custom parameters of WifiManager library for those microcontrollers. Also it use the [canairio_sensorlib](https://github.com/kike-canaries/canairio_sensorlib) library for handled multiple sensors and **influxdb** for save the output data, you can use the CanAirIO test server or your custom instance.
+Reduced version for a possible CanAirIO device for fixed stations. The current firmware is in **development**, and it should be support `ESP32` and `ESP8266` devices. The main code is a abstraction with custom parameters of WifiManager library for those microcontrollers. Also it use the [canairio_sensorlib](https://github.com/kike-canaries/canairio_sensorlib) library for handled multiple sensors and **influxdb** for save the output data, you also can use the CanAirIO test server or your custom instance.
 
 ## Firmware
 
@@ -18,7 +18,7 @@ git clone git@github.com:hpsaturn/CanAirIO_fixed_station.git
 
 Connect your device to USB cable , enter to `CanAirIO` directory and run:
 
-### ESP32 (default)
+### NODEMCUV2 (default)
 
 ```python
 pio run --target upload
@@ -27,7 +27,7 @@ pio run --target upload
 You should have something like this:
 
 ```python
-Building .pio/build/WEMOS/firmware.bin
+Building .pio/build/NODEMCUV2/firmware.bin
 RAM:   [=         ]  12.3% (used 40432 bytes from 327680 bytes)
 Flash: [======    ]  64.9% (used 850800 bytes from 1310720 bytes)
 ===================== [SUCCESS] Took 8.44 seconds ======================
@@ -48,7 +48,7 @@ The current environments are WEMOS, TTGO_T7, nodemcuv2 and esp12e, but please re
 You can compile and upload the variant for example with:
 
 ```python
-pio run -e esp12e --target upload
+pio run -e ESP12E --target upload
 ```
 
 ## Upload the config data
@@ -66,11 +66,9 @@ The config json file is like this:
   "influxdb":"canairio",
   "hostname":"influxdb.canair.io",
   "port":"8086",
-  "devicename":"PM25_Station",
-  "country_code":"CO",
+  "geohash":"9q8yv",
   "stime":"10",
-  "lat":"52.51",
-  "lon":"13.22"
+  "stype":"0"
 }
 ```
 
